@@ -12,14 +12,26 @@ HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 
-int spiral_size;
-std::valarray<int> primes_spiral;
+namespace
+{
+	int spiral_size;
+	int spiral_start;
+	int spiral_incr;
+	std::valarray<int> primes_spiral;
+	
+	void generate_spiral ()
+	{
+		auto my_spiral = rwt::spiral::make_spiral (spiral_size, spiral_start, spiral_incr);
+		primes_spiral = my_spiral.apply (rwt::spiral::is_prime);
+	}
+}
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK    Settings(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -36,9 +48,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     LoadStringW(hInstance, IDC_ULAMSPIRAL, szWindowClass, MAX_LOADSTRING);
     MyRegisterClass(hInstance);
 
-	spiral_size = 800;
-	auto my_spiral = rwt::spiral::make_spiral (spiral_size, 1, 1);
-	primes_spiral = my_spiral.apply (rwt::spiral::is_prime);
+	spiral_size = 20;
+	spiral_start = 1;
+	spiral_incr = 1;
+	generate_spiral ();
 
     // Perform application initialization:
     if (!InitInstance (hInstance, nCmdShow))
@@ -76,7 +89,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 
     wcex.cbSize = sizeof(WNDCLASSEX);
 
-    wcex.style          = CS_HREDRAW | CS_VREDRAW;
+	wcex.style          = CS_HREDRAW | CS_VREDRAW;
     wcex.lpfnWndProc    = WndProc;
     wcex.cbClsExtra     = 0;
     wcex.cbWndExtra     = 0;
@@ -131,16 +144,33 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	static bool is_moving = false;
+
     switch (message)
     {
+	case WM_ENTERSIZEMOVE:
+		is_moving = true;
+		break;
+	case WM_EXITSIZEMOVE:
+		is_moving = false;
+		break;
     case WM_COMMAND:
         {
+			INT_PTR result;
             int wmId = LOWORD(wParam);
             // Parse the menu selections:
             switch (wmId)
             {
+			case ID_FILE_SETTINGS:
+				result = DialogBox (hInst, MAKEINTRESOURCE (IDD_SETTINGSDLG), hWnd, Settings);
+				if (result == IDOK)
+				{
+					generate_spiral ();
+					InvalidateRect (hWnd, nullptr, true);
+				}
+				break;
             case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+                DialogBox (hInst, MAKEINTRESOURCE (IDD_ABOUTBOX), hWnd, About);
                 break;
             case IDM_EXIT:
                 DestroyWindow(hWnd);
@@ -152,6 +182,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_PAINT:
         {
+			if (is_moving) break;
 			const int size = spiral_size;
 
 			RECT rect;
@@ -187,6 +218,51 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
     return 0;
+}
+
+// Message handler for settings dialog.
+INT_PTR CALLBACK Settings (HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	wchar_t buff[20];
+
+	UNREFERENCED_PARAMETER (lParam);
+	switch (message)
+	{
+	case WM_INITDIALOG:
+		swprintf (buff, 20, L"%d", spiral_size);
+		SetDlgItemText (hDlg, IDC_EDITSZ, buff);
+		swprintf (buff, 20, L"%d", spiral_start);
+		SetDlgItemText (hDlg, IDC_EDITSTART, buff);
+		swprintf (buff, 20, L"%d", spiral_incr);
+		SetDlgItemText (hDlg, IDC_EDITINCR, buff);
+		return (INT_PTR)TRUE;
+	case WM_COMMAND:
+	{
+		auto cmd = LOWORD (wParam);
+		if (cmd == IDOK)
+		{
+			int val = -1;
+			GetDlgItemText (hDlg, IDC_EDITSZ, buff, 20);
+			swscanf_s (buff, L"%d", &val);
+			if (val > 0) spiral_size = val;
+			val = -1;
+			GetDlgItemText (hDlg, IDC_EDITSTART, buff, 20);
+			swscanf_s (buff, L"%d", &val);
+			if (val >= 0) spiral_start = val;
+			val = -1;
+			GetDlgItemText (hDlg, IDC_EDITINCR, buff, 20);
+			swscanf_s (buff, L"%d", &val);
+			if (val >= 0) spiral_incr = val;
+		}
+		if (cmd == IDOK || cmd == IDCANCEL)
+		{
+			EndDialog (hDlg, LOWORD (wParam));
+			return (INT_PTR)TRUE;
+		}
+		break;
+	}
+	}
+	return (INT_PTR)FALSE;
 }
 
 // Message handler for about box.
