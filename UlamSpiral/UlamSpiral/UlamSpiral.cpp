@@ -153,8 +153,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_PAINT:
         {
 			const int size = spiral_size;
-			double min_intense = (primes_spiral.min)();
-			double intensity_range = (primes_spiral.max)() - min_intense;
 
 			RECT rect;
             PAINTSTRUCT ps;
@@ -168,17 +166,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			SetViewportExtEx (hdc, rect.right - rect.left, rect.bottom - rect.top, nullptr);
 			SetViewportOrgEx (hdc, 0, 0, nullptr);
 
+			std::size_t idx = 0;
 			for(int y = 0; y < size; ++y)
 				for (int x = 0; x < size; ++x)
 				{
-					BYTE intensity =  static_cast<BYTE>(255*(primes_spiral[x+y*size] / intensity_range));
-					brush = CreateSolidBrush (RGB (intensity, intensity, intensity));
+					brush = GetSysColorBrush (primes_spiral[idx++] ? COLOR_HIGHLIGHT : COLOR_WINDOW);
 					rect.top = y;
 					rect.left = x;
 					rect.bottom = rect.top + 1;
 					rect.right = rect.left + 1;
 					FillRect (hdc, &rect, brush);
-					DeleteObject (brush);
 				}
             EndPaint(hWnd, &ps);
         }
