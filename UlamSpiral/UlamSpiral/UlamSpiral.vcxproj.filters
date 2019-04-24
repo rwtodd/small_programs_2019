@@ -55,7 +55,4 @@
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
-  <ItemGroup>
-    <Text Include="notes.txt" />
-  </ItemGroup>
 </Project>

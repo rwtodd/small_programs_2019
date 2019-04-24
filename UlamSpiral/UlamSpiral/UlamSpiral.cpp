@@ -2,6 +2,8 @@
 //
 
 #include "stdafx.h"
+#include <uxtheme.h> // for buffered painting
+#pragma comment(lib, "uxtheme.lib")
 #include "UlamSpiral.h"
 #include "spiral.h"
 
@@ -148,6 +150,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     switch (message)
     {
+	case WM_CREATE:
+		BufferedPaintInit ();
+		break;
 	case WM_ENTERSIZEMOVE:
 		is_moving = true;
 		break;
@@ -187,11 +192,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			RECT rect;
             PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
+            HDC winHdc = BeginPaint(hWnd, &ps);
 			GetClientRect (hWnd, &rect);
-			HBRUSH brush;
 
 			// set up our coordinate space:
+			SetMapMode (winHdc, MM_ANISOTROPIC);
+			SetWindowExtEx (winHdc, spiral_size, spiral_size, nullptr);
+			SetViewportExtEx (winHdc, rect.right - rect.left, rect.bottom - rect.top, nullptr);
+			SetViewportOrgEx (winHdc, 0, 0, nullptr);
+
+			// set up buffered drawing
+			HDC hdc;
+			HPAINTBUFFER hBufferedPaint =
+				BeginBufferedPaint (winHdc, &rect, BPBF_COMPATIBLEBITMAP,
+									NULL, &hdc);
+
+			// it seems we have to set the coordinate space again on the buffered HDC
 			SetMapMode (hdc, MM_ANISOTROPIC);
 			SetWindowExtEx (hdc, spiral_size, spiral_size, nullptr);
 			SetViewportExtEx (hdc, rect.right - rect.left, rect.bottom - rect.top, nullptr);
@@ -201,17 +217,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			for(int y = 0; y < size; ++y)
 				for (int x = 0; x < size; ++x)
 				{
-					brush = GetSysColorBrush (primes_spiral[idx++] ? COLOR_HIGHLIGHT : COLOR_WINDOW);
+					HBRUSH brush = GetSysColorBrush (primes_spiral[idx++] ? COLOR_HIGHLIGHT : COLOR_WINDOW);
 					rect.top = y;
 					rect.left = x;
 					rect.bottom = rect.top + 1;
 					rect.right = rect.left + 1;
 					FillRect (hdc, &rect, brush);
 				}
+			EndBufferedPaint (hBufferedPaint, true);
             EndPaint(hWnd, &ps);
         }
         break;
-    case WM_DESTROY:
+	case WM_NCDESTROY:
+		BufferedPaintUnInit ();
+		break;
+	case WM_DESTROY:
         PostQuitMessage(0);
         break;
     default:
@@ -223,9 +243,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 // Message handler for settings dialog.
 INT_PTR CALLBACK Settings (HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	UNREFERENCED_PARAMETER (lParam);
+	
 	wchar_t buff[20];
 
-	UNREFERENCED_PARAMETER (lParam);
 	switch (message)
 	{
 	case WM_INITDIALOG:
