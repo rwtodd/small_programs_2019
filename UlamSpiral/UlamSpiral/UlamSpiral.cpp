@@ -3,7 +3,6 @@
 
 #include "stdafx.h"
 #include <uxtheme.h> // for buffered painting
-#pragma comment(lib, "uxtheme.lib")
 #include "UlamSpiral.h"
 #include "spiral.h"
 
