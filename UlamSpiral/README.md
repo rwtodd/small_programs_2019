@@ -10,7 +10,11 @@ Here's an image:
 
 ## Techniques
 
-This program is just a toy to further my Win32 knowledge.  I used:
+One thing I liked is: most code you see online makes progressively-bigger
+matrices, rotates them, and adds the next row.  My code just allocates the
+final matrix and fills in the spiral in one pass.
+
+However, this program is mainly just a toy to further my Win32 knowledge.  I used:
 
  - the BufferedPaint APIs to avoid slowly displaying all the blocks
  
