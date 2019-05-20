@@ -4,11 +4,18 @@
 ;; do not drop below level sigma (starting at 0)...
 (defstruct ge n sigma mult)
 
+(defun ge< (a b)
+  "an ordering function on ge's, for sorting"
+  (let ((na (ge-n a))
+	(nb (ge-n b)))
+    (or (< na nb)
+	(and (= na nb) (< (ge-sigma a) (ge-sigma b))))))
+
 ;; we'll work with a walk that moves +/- 1 each step, but this
 ;; is configurable if we want to play with other configurations
-(defparameter *moves* (list -1 1)) 
-(defparameter *min-u* (apply #'min *moves*))
-(defparameter *len-u* (length *moves*))
+(defparameter *moves* (list -1 1) "the possible moves at each step") 
+(defparameter *min-u* (apply #'min *moves*) "the most negative of *moves*")
+(defparameter *len-u* (length *moves*) "pre-calculated length of *moves*")
 
 (defun simplify (ge)
   "convert a ge(n,_) into a list of ge(n-1,_)'s -- or short-circuit
@@ -16,33 +23,23 @@ directly to an answer if possible."
   (let ((n (ge-n ge))
 	(sigma (ge-sigma ge))
 	(mult (ge-mult ge)))
-    (cond ((> sigma 0)
-	   ;; sigma < 0 is always a failure
-	   0)
-	  ((= n 0)
-	   ;; n == 0, we get mult successes
-	   mult)
-	  ((>= (* n *min-u*) sigma)
-	   ;; n*min >= sigma == we get
-	   (* mult (expt *len-u* n)))
-	  (t
-	   ;; expand the current ge into two...
-	   (mapcar #'(lambda (u)
-		       (make-ge :n (1- n) :sigma (- sigma u) :mult mult))
-		   *moves*)))))
-
-(defun ge< (a b)
-  "an ordering function on ge's, for sorting"
-  (or (< (ge-n a) (ge-n b))
-      (< (ge-sigma a) (ge-sigma b))))
+    (cond
+      ((> sigma 0) 0)  ;; sigma < 0 is always a failure
+      ((= n 0) mult)   ;; n == 0, we get mult successes
+      ((>= (* n *min-u*) sigma)
+	   (* mult (expt *len-u* n)))  ;; n*min >= sigma == all success
+      (t  ;; expand the current ge into two...
+       (mapcar #'(lambda (u)
+		   (make-ge :n (1- n) :sigma (- sigma u) :mult mult))
+	       *moves*)))))
 
 (defun combine-like (list)
-  "take a sorted list of ge's, and combine entries with the
-same n and sigma values"
+  "take a list of ge's, and combine entries with the
+same n and sigma values. Do so via sorting and walking the list."
   (let ((result nil)
 	(last-n -1)
 	(last-sigma -1))
-    (dolist (ge list result)
+    (dolist (ge (sort list #'ge<) result)
       (let ((n (ge-n ge))
 	    (sigma (ge-sigma ge)))
 	(if (and (= last-n n)
@@ -62,7 +59,7 @@ random walks that start a 0 and never fall below sigma in n steps."
        (loop :for ge :in (mapcar #'simplify ge-list)
 	  :if (consp ge) :nconc ge :into expansions
 	  :else :summing ge :into sums
-	  :finally (return (cons sums (combine-like (sort expansions #'ge<)))))
+	  :finally (return (cons sums (combine-like expansions))))
      :summing accum))
 
 ;; example use: random walks of length 6000 which don't drop
