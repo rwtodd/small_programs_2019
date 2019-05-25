@@ -44,7 +44,7 @@ same n and sigma values. Do so via sorting and walking the list."
 	    (sigma (ge-sigma ge)))
 	(if (and (= last-n n)
 		 (= last-sigma sigma))
-	    (setf (ge-mult (car result)) (+ (ge-mult ge) (ge-mult (car result))))
+	    (incf (ge-mult (car result)) (ge-mult ge))
 	    (progn
 	      (setq last-n n last-sigma sigma)
 	      (push ge result)))))))
