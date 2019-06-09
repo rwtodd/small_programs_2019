@@ -194,21 +194,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             HDC winHdc = BeginPaint(hWnd, &ps);
 			GetClientRect (hWnd, &rect);
 
-			// set up our coordinate space:
-			SetMapMode (winHdc, MM_ANISOTROPIC);
-			SetWindowExtEx (winHdc, spiral_size, spiral_size, nullptr);
-			SetViewportExtEx (winHdc, rect.right - rect.left, rect.bottom - rect.top, nullptr);
-			SetViewportOrgEx (winHdc, 0, 0, nullptr);
-
 			// set up buffered drawing
 			HDC hdc;
+			BP_PAINTPARAMS params = { sizeof (params), BPPF_ERASE };
 			HPAINTBUFFER hBufferedPaint =
-				BeginBufferedPaint (winHdc, &rect, BPBF_COMPATIBLEBITMAP,
-									NULL, &hdc);
+			  BeginBufferedPaint (winHdc, &rect, BPBF_COMPATIBLEBITMAP,
+									&params, &hdc);
+			if (hBufferedPaint == nullptr)
+			{
+				EndPaint (hWnd, &ps);
+				break;
+			}
+			int savedDC = SaveDC (hdc);
 
 			// it seems we have to set the coordinate space again on the buffered HDC
 			SetMapMode (hdc, MM_ANISOTROPIC);
-			SetWindowExtEx (hdc, spiral_size, spiral_size, nullptr);
+			SetWindowExtEx (hdc, size, size, nullptr);
 			SetViewportExtEx (hdc, rect.right - rect.left, rect.bottom - rect.top, nullptr);
 			SetViewportOrgEx (hdc, 0, 0, nullptr);
 
@@ -223,6 +224,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					rect.right = rect.left + 1;
 					FillRect (hdc, &rect, brush);
 				}
+
+			RestoreDC (hdc, savedDC);
 			EndBufferedPaint (hBufferedPaint, true);
             EndPaint(hWnd, &ps);
         }
