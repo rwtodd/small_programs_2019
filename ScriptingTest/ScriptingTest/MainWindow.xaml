@@ -1,0 +1,14 @@
+﻿<Window x:Class="ScriptingTest.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ScriptingTest"
+        mc:Ignorable="d"
+        Title="Code Runner" Height="450" Width="800">
+    <DockPanel>
+        <TextBox x:Name="ResultsBox" FontFamily="Go Mono" FontSize="12" DockPanel.Dock="Bottom" MinLines="5">Results here</TextBox>
+        <Button DockPanel.Dock="Bottom" FontSize="14" FontFamily="Go Mono" Click="Button_Click" >Run</Button>
+        <TextBox x:Name="CodeBox"  TextWrapping="Wrap" AcceptsReturn="True" FontFamily="Go Mono" FontSize="12">return 5;</TextBox>
+    </DockPanel>
+</Window>
