@@ -19,7 +19,7 @@ namespace
 	int spiral_start;
 	int spiral_incr;
 	std::valarray<int> primes_spiral;
-	
+
 	void generate_spiral ()
 	{
 		auto my_spiral = rwt::spiral::make_spiral (spiral_size, spiral_start, spiral_incr);
@@ -28,53 +28,53 @@ namespace
 }
 
 // Forward declarations of functions included in this code module:
-ATOM                MyRegisterClass(HINSTANCE hInstance);
-BOOL                InitInstance(HINSTANCE, int);
-LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK    Settings(HWND, UINT, WPARAM, LPARAM);
+ATOM                MyRegisterClass (HINSTANCE hInstance);
+BOOL                InitInstance (HINSTANCE, int);
+LRESULT CALLBACK    WndProc (HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK    About (HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK    Settings (HWND, UINT, WPARAM, LPARAM);
 
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-                     _In_opt_ HINSTANCE hPrevInstance,
-                     _In_ LPWSTR    lpCmdLine,
-                     _In_ int       nCmdShow)
+int APIENTRY wWinMain (_In_ HINSTANCE hInstance,
+	_In_opt_ HINSTANCE hPrevInstance,
+	_In_ LPWSTR    lpCmdLine,
+	_In_ int       nCmdShow)
 {
-    UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
+	UNREFERENCED_PARAMETER (hPrevInstance);
+	UNREFERENCED_PARAMETER (lpCmdLine);
 
-    // TODO: Place code here.
+	// TODO: Place code here.
 
-    // Initialize global strings
-    LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadStringW(hInstance, IDC_ULAMSPIRAL, szWindowClass, MAX_LOADSTRING);
-    MyRegisterClass(hInstance);
+	// Initialize global strings
+	LoadStringW (hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
+	LoadStringW (hInstance, IDC_ULAMSPIRAL, szWindowClass, MAX_LOADSTRING);
+	MyRegisterClass (hInstance);
 
 	spiral_size = 20;
 	spiral_start = 1;
 	spiral_incr = 1;
 	generate_spiral ();
 
-    // Perform application initialization:
-    if (!InitInstance (hInstance, nCmdShow))
-    {
-        return FALSE;
-    }
+	// Perform application initialization:
+	if (!InitInstance (hInstance, nCmdShow))
+	{
+		return FALSE;
+	}
 
-    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_ULAMSPIRAL));
+	HACCEL hAccelTable = LoadAccelerators (hInstance, MAKEINTRESOURCE (IDC_ULAMSPIRAL));
 
-    MSG msg;
+	MSG msg;
 
-    // Main message loop:
-    while (GetMessage(&msg, nullptr, 0, 0))
-    {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-    }
+	// Main message loop:
+	while (GetMessage (&msg, nullptr, 0, 0))
+	{
+		if (!TranslateAccelerator (msg.hwnd, hAccelTable, &msg))
+		{
+			TranslateMessage (&msg);
+			DispatchMessage (&msg);
+		}
+	}
 
-    return (int) msg.wParam;
+	return (int)msg.wParam;
 }
 
 
@@ -84,25 +84,25 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 //
 //  PURPOSE: Registers the window class.
 //
-ATOM MyRegisterClass(HINSTANCE hInstance)
+ATOM MyRegisterClass (HINSTANCE hInstance)
 {
-    WNDCLASSEXW wcex;
+	WNDCLASSEXW wcex;
 
-    wcex.cbSize = sizeof(WNDCLASSEX);
+	wcex.cbSize = sizeof (WNDCLASSEX);
 
-	wcex.style          = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc    = WndProc;
-    wcex.cbClsExtra     = 0;
-    wcex.cbWndExtra     = 0;
-    wcex.hInstance      = hInstance;
-    wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ULAMSPIRAL));
-    wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_ULAMSPIRAL);
-    wcex.lpszClassName  = szWindowClass;
-    wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+	wcex.style = CS_HREDRAW | CS_VREDRAW;
+	wcex.lpfnWndProc = WndProc;
+	wcex.cbClsExtra = 0;
+	wcex.cbWndExtra = 0;
+	wcex.hInstance = hInstance;
+	wcex.hIcon = LoadIcon (hInstance, MAKEINTRESOURCE (IDI_ULAMSPIRAL));
+	wcex.hCursor = LoadCursor (nullptr, IDC_ARROW);
+	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wcex.lpszMenuName = MAKEINTRESOURCEW (IDC_ULAMSPIRAL);
+	wcex.lpszClassName = szWindowClass;
+	wcex.hIconSm = LoadIcon (wcex.hInstance, MAKEINTRESOURCE (IDI_SMALL));
 
-    return RegisterClassExW(&wcex);
+	return RegisterClassExW (&wcex);
 }
 
 //
@@ -115,22 +115,22 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 //        In this function, we save the instance handle in a global variable and
 //        create and display the main program window.
 //
-BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
+BOOL InitInstance (HINSTANCE hInstance, int nCmdShow)
 {
-   hInst = hInstance; // Store instance handle in our global variable
+	hInst = hInstance; // Store instance handle in our global variable
 
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+	HWND hWnd = CreateWindowW (szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
 
-   if (!hWnd)
-   {
-      return FALSE;
-   }
+	if (!hWnd)
+	{
+		return FALSE;
+	}
 
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
+	ShowWindow (hWnd, nCmdShow);
+	UpdateWindow (hWnd);
 
-   return TRUE;
+	return TRUE;
 }
 
 //
@@ -143,12 +143,12 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //  WM_DESTROY  - post a quit message and return
 //
 //
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	static bool is_moving = false;
 
-    switch (message)
-    {
+	switch (message)
+	{
 	case WM_CREATE:
 		BufferedPaintInit ();
 		break;
@@ -158,95 +158,95 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_EXITSIZEMOVE:
 		is_moving = false;
 		break;
-    case WM_COMMAND:
-        {
-			INT_PTR result;
-            int wmId = LOWORD(wParam);
-            // Parse the menu selections:
-            switch (wmId)
-            {
-			case ID_FILE_SETTINGS:
-				result = DialogBox (hInst, MAKEINTRESOURCE (IDD_SETTINGSDLG), hWnd, Settings);
-				if (result == IDOK)
-				{
-					generate_spiral ();
-					InvalidateRect (hWnd, nullptr, true);
-				}
-				break;
-            case IDM_ABOUT:
-                DialogBox (hInst, MAKEINTRESOURCE (IDD_ABOUTBOX), hWnd, About);
-                break;
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-            }
-        }
-        break;
-    case WM_PAINT:
-        {
-			if (is_moving) break;
-			const int size = spiral_size;
-
-			RECT rect;
-            PAINTSTRUCT ps;
-            HDC winHdc = BeginPaint(hWnd, &ps);
-			GetClientRect (hWnd, &rect);
-
-			// set up buffered drawing
-			HDC hdc;
-			BP_PAINTPARAMS params = { sizeof (params), BPPF_ERASE };
-			HPAINTBUFFER hBufferedPaint =
-			  BeginBufferedPaint (winHdc, &rect, BPBF_COMPATIBLEBITMAP,
-									&params, &hdc);
-			if (hBufferedPaint == nullptr)
+	case WM_COMMAND:
+	{
+		INT_PTR result;
+		int wmId = LOWORD (wParam);
+		// Parse the menu selections:
+		switch (wmId)
+		{
+		case ID_FILE_SETTINGS:
+			result = DialogBox (hInst, MAKEINTRESOURCE (IDD_SETTINGSDLG), hWnd, Settings);
+			if (result == IDOK)
 			{
-				EndPaint (hWnd, &ps);
-				break;
+				generate_spiral ();
+				InvalidateRect (hWnd, nullptr, true);
 			}
-			int savedDC = SaveDC (hdc);
+			break;
+		case IDM_ABOUT:
+			DialogBox (hInst, MAKEINTRESOURCE (IDD_ABOUTBOX), hWnd, About);
+			break;
+		case IDM_EXIT:
+			DestroyWindow (hWnd);
+			break;
+		default:
+			return DefWindowProc (hWnd, message, wParam, lParam);
+		}
+	}
+	break;
+	case WM_PAINT:
+	{
+		if (is_moving) break;
+		const int size = spiral_size;
 
-			// it seems we have to set the coordinate space again on the buffered HDC
-			SetMapMode (hdc, MM_ANISOTROPIC);
-			SetWindowExtEx (hdc, size, size, nullptr);
-			SetViewportExtEx (hdc, rect.right - rect.left, rect.bottom - rect.top, nullptr);
-			SetViewportOrgEx (hdc, 0, 0, nullptr);
+		RECT rect;
+		PAINTSTRUCT ps;
+		HDC winHdc = BeginPaint (hWnd, &ps);
+		GetClientRect (hWnd, &rect);
 
-			std::size_t idx = 0;
-			for(int y = 0; y < size; ++y)
-				for (int x = 0; x < size; ++x)
-				{
-					HBRUSH brush = GetSysColorBrush (primes_spiral[idx++] ? COLOR_HIGHLIGHT : COLOR_WINDOW);
-					rect.top = y;
-					rect.left = x;
-					rect.bottom = rect.top + 1;
-					rect.right = rect.left + 1;
-					FillRect (hdc, &rect, brush);
-				}
+		// set up buffered drawing
+		HDC hdc;
+		BP_PAINTPARAMS params = { sizeof (params), BPPF_ERASE };
+		HPAINTBUFFER hBufferedPaint =
+			BeginBufferedPaint (winHdc, &rect, BPBF_COMPATIBLEBITMAP,
+				&params, &hdc);
+		if (hBufferedPaint == nullptr)
+		{
+			EndPaint (hWnd, &ps);
+			break;
+		}
+		int savedDC = SaveDC (hdc);
 
-			RestoreDC (hdc, savedDC);
-			EndBufferedPaint (hBufferedPaint, true);
-            EndPaint(hWnd, &ps);
-        }
-        break;
+		// set the coordinate space on the buffered HDC
+		SetMapMode (hdc, MM_ANISOTROPIC);
+		SetWindowExtEx (hdc, size, size, nullptr);
+		SetViewportExtEx (hdc, rect.right - rect.left, rect.bottom - rect.top, nullptr);
+		SetViewportOrgEx (hdc, 0, 0, nullptr);
+
+		std::size_t idx = 0;
+		for (int y = 0; y < size; ++y)
+			for (int x = 0; x < size; ++x)
+			{
+				HBRUSH brush = GetSysColorBrush (primes_spiral[idx++] ? COLOR_HIGHLIGHT : COLOR_WINDOW);
+				rect.top = y;
+				rect.left = x;
+				rect.bottom = rect.top + 1;
+				rect.right = rect.left + 1;
+				FillRect (hdc, &rect, brush);
+			}
+
+		RestoreDC (hdc, savedDC);
+		EndBufferedPaint (hBufferedPaint, true);
+		EndPaint (hWnd, &ps);
+	}
+	break;
 	case WM_NCDESTROY:
 		BufferedPaintUnInit ();
 		break;
 	case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
-    default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
-    }
-    return 0;
+		PostQuitMessage (0);
+		break;
+	default:
+		return DefWindowProc (hWnd, message, wParam, lParam);
+	}
+	return 0;
 }
 
 // Message handler for settings dialog.
 INT_PTR CALLBACK Settings (HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER (lParam);
-	
+
 	wchar_t buff[20];
 
 	switch (message)
@@ -289,21 +289,21 @@ INT_PTR CALLBACK Settings (HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam
 }
 
 // Message handler for about box.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK About (HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    UNREFERENCED_PARAMETER(lParam);
-    switch (message)
-    {
-    case WM_INITDIALOG:
-        return (INT_PTR)TRUE;
+	UNREFERENCED_PARAMETER (lParam);
+	switch (message)
+	{
+	case WM_INITDIALOG:
+		return (INT_PTR)TRUE;
 
-    case WM_COMMAND:
-        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-        {
-            EndDialog(hDlg, LOWORD(wParam));
-            return (INT_PTR)TRUE;
-        }
-        break;
-    }
-    return (INT_PTR)FALSE;
+	case WM_COMMAND:
+		if (LOWORD (wParam) == IDOK || LOWORD (wParam) == IDCANCEL)
+		{
+			EndDialog (hDlg, LOWORD (wParam));
+			return (INT_PTR)TRUE;
+		}
+		break;
+	}
+	return (INT_PTR)FALSE;
 }
