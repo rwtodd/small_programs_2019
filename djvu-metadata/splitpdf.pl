@@ -15,9 +15,9 @@ This program splits a pdf into mutliple TIFF files (24bit color, lzw-compressed)
 EOH
 }
 
-my %opts = ( d => 600, s => 50 );  # default values
-getopts('t:d:s:', \%opts) or die 'Bad options!';
-my ($dpi, $unit, $pdf) =  ( @opts{'d','s'}, shift @ARGV );
+my %opts = ( d => 600, u => 50 );  # default values
+getopts('t:d:u:', \%opts) or die 'Bad options!';
+my ($dpi, $unit, $pdf) =  ( @opts{'d','u'}, shift @ARGV );
 my $pages = get_pdf_pages($pdf);
 
 if(defined $opts{t}) {
