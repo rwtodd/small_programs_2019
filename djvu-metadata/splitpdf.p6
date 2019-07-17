@@ -3,10 +3,10 @@ my $gs = 'C:\Program Files\gs\gs9.24\bin\gswin64c.exe';  # location on my machin
 sub USAGE() {
   print Q:to/EOH/;
 
-Usage: perl splitpdf.pl [options] <pdf>
-  --test=nn: only convert page nn, for dpi testing
-  --dpi=nn: use dpi nn (default 600)
-  --unit=nn: split into units of nn pages (default 50)
+Usage: perl6 splitpdf.p6 [options] <pdf>
+  --test=nn   only convert page nn, for dpi testing
+  --dpi=nn    use dpi nn (default 600)
+  --unit=nn   split into units of nn pages (default 50)
 
 This program splits a pdf into mutliple TIFF files (24bit color, lzw-compressed).
 EOH
