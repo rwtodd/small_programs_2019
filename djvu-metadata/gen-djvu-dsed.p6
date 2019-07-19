@@ -1,9 +1,11 @@
 grammar DjVuMarks {
-   token TOP { ^ <line>* $ }
-   token line { [ <mark> || <pageno> || <meta> ] \n }
-   token pageno { :i DJVU \s+ (\d+) \s+ \= \s+ BOOK \s+ (<graph>+:) [\s+ PREFIX \s+ (<graph>+:)]? \N* }
-   token meta   { :i META \s+ (\w+)\: \s+ (\N+) }
-   token mark { (\d+) \s+ (\N+) }
+   token TOP { <line>* }
+   token ws { \h* }
+   token line { \s*: [ <mark> || <pageno> || <meta> || <comment> ] \h*\n }
+   token comment { '#' \N+ }
+   rule pageno { :i 'DJVU' (\d+) '=' 'BOOK' (<graph>+:) ['PREFIX' (<graph>+:)]? }
+   rule meta { :i 'META' (\w+:)':' (\N+:) }
+   rule mark { (\d+) (\N+) }
 } 
 
 my $offset = 0;       # current difference between book page nums and djvu pages
