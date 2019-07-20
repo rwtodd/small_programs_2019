@@ -1,11 +1,15 @@
 grammar DjVuMarks {
-   token TOP { <line>* }
+   token TOP { <line>* \s* }
    token ws { \h* }
-   token line { \s*: [ <mark> || <pageno> || <meta> || <comment> ] \h*\n }
+   token line { \s*: [ <mark> || <pageno> || <meta> || <comment> || .<error()> ] \h*\n }
    token comment { '#' \N+ }
-   rule pageno { :i 'DJVU' (\d+) '=' 'BOOK' (<graph>+:) ['PREFIX' (<graph>+:)]? }
+   rule pageno { :i 'DJVU' (\d+) ['=' || 'IS'] 'BOOK' (<graph>+:) ['PREFIX' (<graph>+:)]? }
    rule meta { :i 'META' (\w+:)':' (\N+:) }
    rule mark { (\d+) (\N+) }
+   method error() {
+      my $parsed-so-far = self.target.substr(0, self.pos);
+      die "Cannot parse input on line $parsed-so-far.lines.elems()"
+   }
 } 
 
 my $offset = 0;       # current difference between book page nums and djvu pages
@@ -46,6 +50,7 @@ sub MAIN(Str $fn where *.IO.f) {
      when .<pageno> { 
         my ($djvuno, $bookno, $npfx) = map *.Str, @($_<pageno>);
         if $numeric {
+           if $djvu-page >= $djvuno { die "Djvu page $djvuno is <= the previously-mentioned page $djvu-page!" }
            while $djvu-page < $djvuno {
                gen-page-title()
            }
