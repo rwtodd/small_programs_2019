@@ -1,8 +1,37 @@
+<#
+.Synopsis
+This script splits a pdf file into a set of TIFF files.
+.Description
+Ghostscript is used to output TIFF files, and parameters are offered
+to control aspects such as the device, dpi, and compression used.
+
+.Parameter device
+The Ghostscript device to use for output (default tiff24nc).
+.Parameter dpi
+The output dpi (default 600).
+.Parameter prefix
+A prefix for the output filename (defualt 'page').
+.Parameter unit
+The number of pages per TIFF file (default 100).
+.Parameter testPage
+When provided, this parameter indicates that the script should only
+output the given page. This way, a single page can be inspected prior
+to spending time splitting the entire pdf.
+.Parameter gsArgs
+An array of additional arguments to Ghostscript (default "-sCompression=lzw").
+
+.Example
+splitpdf.ps1 file.pdf
+
+Splits a pdf with default settings (600dpi, 25 pages per TIFF, 24-bit color LZW compressed).
+#>
 Param (
     [Parameter(Mandatory=$true)][System.IO.FileInfo] $pdf,
     [Int32] $dpi = 600,
-    [Int32] $unit = 25,
+    [Int32] $unit = 100,
     [String] $device = "tiff24nc",
+    [String] $prefix = "page",
+    [String[]] $gsArgs = @("-sCompression=lzw"),
     [Int32] $testPage = 0
 )
 
@@ -13,10 +42,11 @@ function New-Tiff {
         [Int32] $fp,  # first page
         [Int32] $lp   # last page
     )
-    $ofile = 'page-{0:D4}.tiff' -f $fp
+    $ofile = '{0}-{1:D4}.tiff' -f $prefix,$fp
     if (-not (Test-Path -LiteralPath $ofile)) {
         Write-Host -ForegroundColor Yellow "FirstPage $fp; LastPage $lp"
-        & $gs "-sDEVICE=$device" "-dFirstPage=$fp" "-dLastPage=$lp" "-r${dpi}x${dpi}" "-o" $ofile $pdf | Out-Null
+        & $gs "-sDEVICE=$device" "-dFirstPage=$fp" "-dLastPage=$lp" `
+           "-r${dpi}x${dpi}" @gsArgs "-o" $ofile $pdf | Out-Null
     } else {
         Write-Host -ForegroundColor Red "File <$ofile> already exists."
     }
