@@ -30,9 +30,9 @@ switch -Regex -File $src {
   # Page title
   '^\s*[Dd]jvu\s+(\d+)\s+(?:=|is)\s+[Bb]ook\s+(\S+)(?:\s+[Pp]refix\s+(.*?))?\s*$' {
     [Int32] $tgtPage = $matches[1]
-    if ($tgtPage -le $djvuPage) { 
+    if ($tgtPage -lt $djvuPage) { 
       Write-Error "Setting djvu $tgtPage after $djvuPage isn't allowed!"
-      exit 1 
+      # exit 1 
     }
     while ($numeric -and $djvuPage -lt $tgtPage) { Write-Page-Title }
     $djvuPage, $bookPage = $tgtPage, $matches[2] 
@@ -43,6 +43,7 @@ switch -Regex -File $src {
       $offset = $djvuPage - $bookPage
     } else {
       $numeric = $false
+      $offset = 0
     }
     Write-Page-Title
   }
