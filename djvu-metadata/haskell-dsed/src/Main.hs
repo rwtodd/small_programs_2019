@@ -1,5 +1,6 @@
 module Main where
 
+import qualified System.Environment as Env (getArgs)
 import System.IO (Handle, hPutStr, hPutStrLn)
 import Data.Char (toUpper)
 import Data.Maybe (maybe, isJust, fromJust)
@@ -62,7 +63,7 @@ comment :: P.Parsec String () Char
 comment = (P.char '#') <* rest_of_line
 
 token :: P.Parsec String () a -> P.Parsec String () a
-token tok = tok <* P.space
+token tok = P.try (tok <* P.space)
 
 ci_token :: String -> P.Parsec String () String
 ci_token word = token $ P.string word P.<|> (P.string $ (toUpper $ head word):(tail word))
@@ -106,10 +107,10 @@ djvu_contents_line = do
   return (ContentsLine $ Contents { contents_pg = pg, contents_title = title })
 
 input_lines :: P.Parsec String () [Line]
-input_lines = P.many $ djvu_comment_line P.<|> 
-                       djvu_meta_line    P.<|> 
-                       djvu_page_line    P.<|>
-                       djvu_contents_line
+input_lines = P.spaces *> P.many (djvu_comment_line P.<|> 
+                                  djvu_meta_line    P.<|> 
+                                  djvu_page_line    P.<|>
+                                  djvu_contents_line)
 
 -- pull in the other two files from pages.dsed...
 pages_epilogue has_meta has_contents =
@@ -130,7 +131,9 @@ generate_output pmeta ppages pconts = do
 
 main :: IO ()
 main = do
-  result <- parseFromFile input_lines "marks.txt"
+  args   <- Env.getArgs
+  let fname = if (null args) then "marks.txt" else head args
+  result <- parseFromFile input_lines fname
   case result of
      Left err  -> print err
      Right lst -> generate_output pmeta ppages pconts 
