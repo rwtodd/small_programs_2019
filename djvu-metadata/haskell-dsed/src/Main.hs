@@ -44,9 +44,9 @@ has_raw_page c = let pg = contents_pg c
                  in (pg_prefix pg == "") && isJust (pg_number pg)
 
 find_contents_pages _       []      = []
+find_contents_pages ds      (c1:cs) | has_raw_page c1                = let p = fromJust $ (pg_number . contents_pg) c1
+                                                                       in (p, c1) : find_contents_pages ds cs
 find_contents_pages (d1:ds) (c1:cs) | (book_pg d1 == contents_pg c1) = (djvu_pg d1, c1) : find_contents_pages ds cs
-                                    | has_raw_page c1                = let p = fromJust $ (pg_number . contents_pg) c1
-                                                                       in (p, c1) : find_contents_pages (d1:ds) cs
                                     | otherwise                      = find_contents_pages ds (c1:cs)
 find_contents_pages []      cs      = error $ "contents remain w/no pages! " ++ (show cs)
 
