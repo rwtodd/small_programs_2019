@@ -248,11 +248,11 @@ namespace GenDSed
         {
             if(args.Length == 0)
             {
-                var oldColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.BackgroundColor = ConsoleColor.Black;
                 Console.Error.WriteLine("Usage: gen-dsed <infile>");
-                Console.ForegroundColor = oldColor;
-                Environment.Exit(1);
+                Console.ResetColor();
+                Environment.Exit(-1);
             }
 
             var inl = new InputLines();
