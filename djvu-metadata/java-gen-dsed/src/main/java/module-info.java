@@ -1,3 +1,3 @@
-module GenDsed {
+module org.rwtodd.gendsed {
 
 }

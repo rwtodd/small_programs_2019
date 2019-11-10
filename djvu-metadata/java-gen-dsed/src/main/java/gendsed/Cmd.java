@@ -1,16 +1,21 @@
 package gendsed;
 
-import java.io.Writer;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.regex.Pattern;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
+/**
+ * A BookPage represents a string prefix+number, as in "p121".
+ * 
+ * @author Richard Todd
+ *
+ */
 final class BookPage {
 
     final String prefix;
