@@ -3,8 +3,9 @@
 $progName = "gen-dsed"
 
 dotnet publish GenDSed.sln -c Release
-$tgtDir = "~\bin\_$progName"
-$tgtScript = "~\bin\$progName.ps1"
+$tgtDir = Join-Path (Resolve-Path "~") bin "_$progName"
+$tgtScript = Join-Path (Resolve-Path "~") bin "$progName.ps1"
+$relativeExe = Join-Path `$PSScriptRoot "_$progName" "$progName.exe"
 
 if (Test-Path $tgtDir) {
   Remove-Item -Force -Recurse $tgtDir
@@ -16,5 +17,5 @@ if (Test-Path $tgtScript) {
 Write-Output "Writing to $tgtScript"
 Copy-Item -Recurse -LiteralPath bin\Release\netcoreapp3.0\publish -Destination $tgtDir
 Set-Content -Path $tgtScript -Value @"
-& "`$PSScriptRoot\_$progName\$progName.exe" `@args
+& "$relativeExe" `@args
 "@

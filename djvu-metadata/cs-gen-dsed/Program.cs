@@ -137,6 +137,11 @@ namespace GenDSed
 
     static class Program
     {
+        /// <summary>
+        /// Converts the input set of djvu pages into a complete list of every document page.
+        /// </summary>
+        /// <param name="inputs">the input selection of djvu pages.</param>
+        /// <returns>the complete page list</returns>
         private static List<DjvuPage> AllPages(List<DjvuPage> inputs)
         {
             var result = new List<DjvuPage>();
@@ -159,6 +164,12 @@ namespace GenDSed
             return result;
         }
 
+        /// <summary>
+        /// Match the given bookmarks to the given djvu page list.
+        /// </summary>
+        /// <param name="pages">the complete djvu page list</param>
+        /// <param name="marks">the user-provided bookmarks</param>
+        /// <returns>The list of bookmarks, annotated with the corresponding djvu page.</returns>
         private static List<MatchedBookMark> MatchMarks(
             List<DjvuPage> pages,
             List<BookMark> marks)
@@ -198,6 +209,11 @@ namespace GenDSed
             return result;
         }
 
+        /// <summary>
+        /// Output djvused instructions to put the user-provided metadata into the djvu document.
+        /// </summary>
+        /// <param name="wtr">the streamwriter for output</param>
+        /// <param name="metas">a dictionary of meta data (key-value pairs)</param>
         private static void OutputMeta(System.IO.StreamWriter wtr,
             Dictionary<string, string> metas)
         {
@@ -260,15 +276,12 @@ namespace GenDSed
             {
                 inl.ParseLine(line);
             }
-            using (var ofile = System.IO.File.CreateText(args[0] + ".dsed"))
-            {
-                var allPages = AllPages(inl.DocPages);
-                var matched = MatchMarks(allPages, inl.BookMarks);
-                OutputPages(ofile, allPages);
-                OutputMeta(ofile, inl.MetaInfo);
-                OutputMarks(ofile, matched);
-            }
-
+            using var ofile = System.IO.File.CreateText(args[0] + ".dsed");
+            var allPages = AllPages(inl.DocPages);
+            var matched = MatchMarks(allPages, inl.BookMarks);
+            OutputPages(ofile, allPages);
+            OutputMeta(ofile, inl.MetaInfo);
+            OutputMarks(ofile, matched);
         }
     }
 }
