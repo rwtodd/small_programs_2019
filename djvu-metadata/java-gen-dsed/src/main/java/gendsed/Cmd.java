@@ -7,8 +7,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Objects;
 import java.util.regex.Pattern;
+import lombok.Value;
+
 
 /**
  * A BookPage represents a string prefix+number, as in "p121".
@@ -16,57 +17,13 @@ import java.util.regex.Pattern;
  * @author Richard Todd
  *
  */
-final class BookPage {
-
-    final String prefix;
-    final Integer page;
-
-    BookPage(int pg) {
-        this("", pg);
-    }
-
-    BookPage(String pre) {
-        this(pre, null);
-    }
-
-    BookPage(String pre, Integer bpg) {
-        prefix = pre;
-        page = bpg;
-    }
+@Value class BookPage {
+    String prefix;
+    Integer page;
 
     BookPage next() {
         return new BookPage(prefix, (page == null) ? 2 : (page + 1));
     }
-
-    @Override
-    public int hashCode() {
-        int hash = 3;
-        hash = 13 * hash + Objects.hashCode(this.prefix);
-        hash = 13 * hash + Objects.hashCode(this.page);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final BookPage other = (BookPage) obj;
-        if (!Objects.equals(this.prefix, other.prefix)) {
-            return false;
-        }
-        if (!Objects.equals(this.page, other.page)) {
-            return false;
-        }
-        return true;
-    }
-
     
     @Override
     public String toString() {
@@ -74,44 +31,41 @@ final class BookPage {
     }
 }
 
-final class DjvuPage {
-
+/**
+ * Represents a page of the djvu document, along with its description
+ * as a book page.
+ * @author Richard Todd
+ */
+@Value class DjvuPage {
     final int djvuPage;
     final BookPage bookPage;
-
-    DjvuPage(int dp, BookPage bp) {
-        djvuPage = dp;
-        bookPage = bp;
-    }
-
+    
+    /**
+     * Calculates and returns the next page after this one, assuming the
+     * {@code BookPage} pattern coninues to hold.
+     * @return The next page.
+     */
     DjvuPage next() {
         return new DjvuPage(djvuPage + 1, bookPage.next());
     }
 }
 
-final class BookMark {
-
+@Value class BookMark {
     final BookPage bookPage;
     final String title;
 
     boolean isRawPage() {
-        return bookPage.prefix.isEmpty();
-    }
-
-    BookMark(String prefix, Integer pno, String markTitle) {
-        bookPage = new BookPage(prefix, pno);
-        title = markTitle;
+        return bookPage.getPrefix().isEmpty();
     }
 }
 
-final class MatchedBookMark {
+/**
+ * A pair (djvupage, Bookmark) mapping a document page to a bookmark.
+ * @author Richard Todd
+ */
+@Value final class MatchedBookMark {
     final int djvuPage;
     final BookMark mark;
-
-    MatchedBookMark(int djvuPage, BookMark mark) {
-        this.djvuPage = djvuPage;
-        this.mark = mark;
-    }
 }
 
 /**
@@ -138,6 +92,11 @@ final class InputLines {
         djvuPages = new ArrayList<>();
     }
 
+    /**
+     * Parses a single input line, updating the internal lists.
+     * @param s the input line
+     * @throws IllegalArgumentException when the input fails to parse.
+     */
     void parseLine(String s) throws IllegalArgumentException {
         if (cmtPattern.matcher(s).matches()) {
             return; // skip comments
@@ -169,7 +128,7 @@ final class InputLines {
                 bookp = Integer.parseInt(bookpStr);
             }
 
-            bookmarks.add(new BookMark(m.group(1), bookp, m.group(3)));
+            bookmarks.add(new BookMark(new BookPage(m.group(1), bookp), m.group(3)));
             return;
         }
 
@@ -214,8 +173,8 @@ public class Cmd {
         out.printf("select; set-outline%n(bookmarks%n");
         for (final var m : marks) {
             out.printf("(\"%s\" \"#%d\")%n",
-                    m.mark.title,
-                    m.djvuPage);
+                    m.getMark().getTitle(),
+                    m.getDjvuPage());
         }
         out.printf(")%n.%n");
     }
@@ -229,8 +188,8 @@ public class Cmd {
             ArrayList<DjvuPage> pages) {
         for (final var pg : pages) {
             out.printf("select %d; set-page-title \"%s\"%n",
-                    pg.djvuPage,
-                    pg.bookPage);
+                    pg.getDjvuPage(),
+                    pg.getBookPage());
         }
     }
 
@@ -248,7 +207,7 @@ public class Cmd {
         var current = it.next();
         while(it.hasNext()) {
             final var target = it.next();
-            while(current.djvuPage < target.djvuPage) {
+            while(current.getDjvuPage() < target.getDjvuPage()) {
                 result.add(current);
                 current = current.next();
             }
@@ -258,6 +217,13 @@ public class Cmd {
         return result;
     }
 
+    /**
+     * Given a complete list of document pages, match them up with the input
+     * bookmarks.
+     * @param pages the complete list of djvu document pages
+     * @param marks the input bookmarks
+     * @return the matched-up bookmarks
+     */
     private static ArrayList<MatchedBookMark> matchMarks(
             final ArrayList<DjvuPage> pages, 
             final ArrayList<BookMark> marks) {
@@ -268,21 +234,21 @@ public class Cmd {
         for(final var mark : marks) {
             if(mark.isRawPage()) {
                 // raw pages match themselves... no lookup required
-                result.add(new MatchedBookMark(mark.bookPage.page, mark));
+                result.add(new MatchedBookMark(mark.getBookPage().getPage(), mark));
             } else {
                 // the mark is for a titled page, so search the `pages` list
                 // for the matching enty.
                 for( ; pageIdx < lastIdx; ++pageIdx) 
-                    if(pages.get(pageIdx).bookPage.equals(mark.bookPage))
+                    if(pages.get(pageIdx).getBookPage().equals(mark.getBookPage()))
                         break;
                 
                 // at this point, either a match was found, or it is an error.
                 if(pageIdx < lastIdx) {
-                    result.add(new MatchedBookMark(pages.get(pageIdx).djvuPage, mark));
+                    result.add(new MatchedBookMark(pages.get(pageIdx).getDjvuPage(), mark));
                 } else {
                     throw new IllegalArgumentException(
                             String.format("Unmatched bookmark %s!", 
-                                    mark.bookPage.toString()));
+                                    mark.getBookPage().toString()));
                 }
             }
         }
