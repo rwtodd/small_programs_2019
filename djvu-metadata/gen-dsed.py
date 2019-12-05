@@ -63,9 +63,7 @@ try:
             parse_line(l)
     all_pages = generate_all_pages()
     if metadata:
-        print('select; set-meta')
-        print('\n'.join(metadata))
-        print('.')
+        print('select; set-meta', *metadata, '.', sep='\n')
     if bookmarks:
         print('select; set-outline','(bookmarks', sep='\n')
         for mark in bookmarks:
