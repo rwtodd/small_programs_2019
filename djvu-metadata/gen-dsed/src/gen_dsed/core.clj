@@ -24,20 +24,18 @@
    { :rx #"^\s*(\S*?)(\d*)\s+(.+)$"
     :handler (fn [[all pre num name]]
                {:type :mark
-                :prefix (if (empty? pre) nil pre)
-                :number (if (empty? num) nil (read-string num))
+                :numeric (empty? pre)
+                :book-pg (str pre num)
                 :title (.trim name)}) }
    ])
 
 (defn parse-input
   "Parse a line of input into data" 
   [line]
-  (->> (map (fn [{:keys [rx handler]}]
-              (if-let [m (re-matches rx line)]
-                (handler m)))
-            line-specs)
-       (filter identity)
-       first))
+  (some (fn [{:keys [rx handler]}]
+          (if-let [m (re-matches rx line)]
+            (handler m)))
+        line-specs))
 
 (defn separate-input
   "Parse each line in `lines` and separate them by type.
@@ -49,42 +47,23 @@
       (throw (IllegalArgumentException. (str "Line " (inc (.indexOf parsed nil)) " didn't parse!"))))
     (group-by :type parsed)))
 
-(defn same-page?
-  "Determine if two maps refer to the same page."
-  [a b]
-  (and (= (:prefix a) (:prefix b))
-       (= (:number a) (:number b))))
-
 (defn next-page
   "Return a spec for the next page, given a page."
   [p]
   (-> p (update :number #(inc (or % 1))) (update :djvu-pg inc)))
 
 (defn all-pages
+  "Generate a map from book pages to djvu pages, given the input `djvus` lines"
   [djvus]
-  (mapcat (fn [pair]
-            (if (== 2 (count pair))
-              (take-while #(< (:djvu-pg %) (:djvu-pg (second pair))) (iterate next-page (first pair)))
-              pair))
-          (partition-all 2 1 djvus)))
+  (into {}
+        (comp  
+         (mapcat (fn [pair]
+                   (if (== 2 (count pair))
+                     (take-while #(< (:djvu-pg %) (:djvu-pg (second pair))) (iterate next-page (first pair)))
+                     pair)))
+         (map (juxt (fn [pg] (str (:prefix pg) (:number pg))) :djvu-pg)))
+        (partition-all 2 1 djvus)))
 
-(defn annotate-bookmarks
-  "Associate a djvu-pg with each of the given bookmarks."
-  [marks pgs]
-  (loop [result (transient [])
-         marks  marks
-         pgs    pgs]
-    (let [mark (first marks),  page (first pgs)]
-      (cond (nil? mark)            (persistent! result)
-            (nil? (:prefix mark))  (recur (conj! result (assoc mark :djvu-pg (:number mark)))
-                                          (rest marks)
-                                          pgs)
-            (same-page? mark page) (recur (conj! result (assoc mark :djvu-pg (:djvu-pg page)))
-                                          (rest marks)
-                                          (rest pgs))
-            (nil? page)            (throw (Exception. (str "Bookmark " mark " with no matching page!")))
-            :else                  (recur result marks (rest pgs))))))
-          
 (defn meta->dsed
   "Write dsed-formatted output for `ms` (a seq of meta lines) to `out`"
   [out ms]
@@ -93,19 +72,23 @@
   (.write out (format ".%n")))
 
 (defn marks->dsed
-  "Write dsed-formatted output for `ms` (a seq of marks lines) to `out`"
-  [out ms]
-  (.write out (format "select ; set-outline%n(bookmarks%n"))
-  (doseq [{:keys [djvu-pg title]} ms]
-    (.write out (format "(\"%s\" \"#%d\")%n" title djvu-pg)))
+  "Write dsed-formatted output for `ms` (a seq of marks lines) to `out`, using `all-pgs` for reference"
+  [out ms all-pgs]
+  (.write out (format "select; set-outline%n(bookmarks%n"))
+  (doseq [mark ms]
+    (let [djvu-pg (if (:numeric mark)
+                    (:book-pg mark)
+                    (get all-pgs (:book-pg mark)))]
+          (if (nil? djvu-pg)
+            (throw (Exception. (str "Bookmark " mark " not found in the book!")))
+            (.write out (format "(\"%s\" \"#%s\")%n" (:title mark) djvu-pg)))))
   (.write out (format ")%n.%n")))
 
 (defn pages->dsed
-  "Write dsed-formatted output for `ps` (a seq of page titles) to `out`"
-  [out ps]
-  (doseq [{:keys [djvu-pg number prefix]} ps]
-    (.write out (format "select %d; set-page-title \"%s\"%n" djvu-pg
-                        (str prefix number)))))
+  "Write dsed-formatted output for `all-pgs` `(the map of page titles) to `out`"
+  [out all-pgs]
+  (doseq [[bp dp] all-pgs]
+    (.write out (format "select %d; set-page-title \"%s\"%n" dp bp))))
 
 (defn -main
   "takes a single arg (a filename), and produces filename.dsed with
@@ -117,10 +100,8 @@
     
     (with-open [input (io/reader (first args))]
       (let [{:keys [mark djvu meta]} (separate-input (line-seq input))
-            pages                    (all-pages djvu)
-            annotated                (annotate-bookmarks mark pages)]
+            pages                    (all-pages djvu)]
         (with-open [out (io/writer (str (first args) ".dsed"))]
           (pages->dsed out pages)
-          (when (seq meta)      (meta->dsed out meta))
-          (when (seq annotated) (marks->dsed out annotated)))))))
-
+          (when (seq meta) (meta->dsed out meta))
+          (when (seq mark) (marks->dsed out mark pages)))))))

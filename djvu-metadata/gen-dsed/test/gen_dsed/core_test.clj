@@ -24,11 +24,11 @@
     (is (= {:type :meta :kw "Title" :val "How Not to Win"}
            (parse-input "mETa   Title:   How Not to Win  "))))
   (testing "parses bookmarks"
-    (is (= {:type :mark :prefix "p" :number 21 :title "Contents"}
+    (is (= {:type :mark :book-pg "p21" :numeric false :title "Contents"}
            (parse-input "p21 Contents")))
-    (is (= {:type :mark :prefix "midpg" :number nil :title "Pictures Pages"}
+    (is (= {:type :mark :book-pg "midpg" :numeric false :title "Pictures Pages"}
            (parse-input "midpg   Pictures Pages  ")))
-    (is (= {:type :mark :prefix nil :number 12 :title "Preface"}
+    (is (= {:type :mark :book-pg "12" :numeric true :title "Preface"}
            (parse-input "12  Preface"))))
   (testing "parses djvu pages"
     (is (= {:type :djvu :djvu-pg 15 :prefix "p" :number 1}
