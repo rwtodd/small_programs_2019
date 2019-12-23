@@ -1,6 +1,8 @@
 #!/usr/bin/env perl
 
-use v5.028;
+use v5.28;
+use feature 'refaliasing';
+no warnings 'experimental::refaliasing';
 
 my (@metadata, @bookmarks, @djvu_pages, %all_pages);
 
@@ -20,44 +22,39 @@ while(<>) {
 
 if (@djvu_pages) {
   # generate %all_pages during output
-  my $prev;
-  foreach my $cur (@djvu_pages) {
-    if($prev) {
-       die "djvu pages out of order! (on $cur->{djvu})" if $prev->{djvu} >= $cur->{djvu};
-       while($prev->{djvu} < $cur->{djvu}) {
-          my $pno = "$prev->{prefix}$prev->{number}";
-          say qq/select $prev->{djvu}; set-page-title "$pno"/;
-          $all_pages{$pno} = $prev->{djvu};
-          $prev = next_page($prev)
-       }
+  my %prev;
+  foreach \my %cur (@djvu_pages) {
+    if(%prev) {
+       die "djvu pages out of order! (on $cur{djvu})" if $prev{djvu} > $cur{djvu};
+       \%prev = register_page(\%prev) while $prev{djvu} < $cur{djvu};
     }     
-    my $pno = "$cur->{prefix}$cur->{number}";
-    say qq/select $cur->{djvu}; set-page-title "$pno"/;
-    $all_pages{$pno} = $cur->{djvu};
-    $prev = next_page($cur)
+    \%prev = register_page(\%cur)
   }
 }
 
 if (@metadata) {
-  say "select; set-meta";
-  say foreach @metadata;
-  say "."
+  local $,="\n";
+  say "select; set-meta", @metadata, ".";
 }
 
 if (@bookmarks) {
   say "select; set-outline\n(bookmarks";
-  foreach my $mark (@bookmarks) {
-    my $dp = $all_pages{$mark->{page}} // 
-             ($mark->{page} =~ /^\d+$/ and $mark->{page}) or 
-             die "Page for bookmark <<$mark->{title}>>, <<$mark->{page}>> not found!"; 
-    say qq/("$mark->{title}" "#$dp")/
+  foreach \my %mark (@bookmarks) {
+    my $dp = $all_pages{$mark{page}} // 
+             ($mark{page} =~ /^\d+$/ and $mark{page}) or 
+             die "Page for bookmark <<$mark{title}>>, <<$mark{page}>> not found!"; 
+    say qq/("$mark{title}" "#$dp")/
   }
   say ")\n."
 }
 
-sub next_page {
-  my $page = shift;
-  { djvu => $page->{djvu}+1, 
-    prefix => $page->{prefix}, 
-    number => ($page->{number} or 1) + 1 }
+# writes out the page title, saves the page to %all_pages, and returns the next page.
+sub register_page {
+  \my %page = shift;
+  my ($pno, $djvu) = ("$page{prefix}$page{number}", $page{djvu});
+  say qq/select $djvu; set-page-title "$pno"/;
+  $all_pages{$pno} = $djvu;
+  { djvu => $page{djvu}+1, 
+    prefix => $page{prefix}, 
+    number => ($page{number} or 1) + 1 }
 }
