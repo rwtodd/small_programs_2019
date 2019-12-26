@@ -18,8 +18,8 @@ djvu_pages = list() # list of DjvuPage
 
 # Pre-compile the regexps ...
 comments_line = re.compile('^\s*#|^\s*$')
-metadata_line = re.compile('^\s*[Mm]eta\s+([^:]+):\s+(.*?)\s*$')
-djvu_line = re.compile('^\s*[Dd]jvu\s+(\d+)\s+(?:=|is)\s+[Bb]ook\s+(\S*?)(\d*)\s*$')
+metadata_line = re.compile('^\s*meta\s+([^:]+):\s+(.*?)\s*$',re.IGNORECASE)
+djvu_line = re.compile('^\s*djvu\s+(\d+)\s+(?:=|is)\s+book\s+(\S*?)(\d*)\s*$',re.IGNORECASE)
 bookmark_line = re.compile('^(\S+)\s+(.*?)\s*$')
 
 def parse_line(l : str) -> None:
