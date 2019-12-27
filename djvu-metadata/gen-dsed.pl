@@ -9,9 +9,9 @@ my (@metadata, @bookmarks, @djvu_pages, %all_pages);
 while(<>) {
   chomp;
   next if /^\s*#|^\s*$/;
-  if (/^\s*[Mm]eta\s+([^:]+):\s+(.*?)\s*$/) {
+  if (/^\s*meta\s+([^:]+):\s+(.*?)\s*$/i) {
      push @metadata, "$1\t$2"
-  } elsif (/^\s*[Dd]jvu\s+(\d+)\s+(?:=|is)\s+[Bb]ook\s+(\S*?)(\d*)\s*$/) {
+  } elsif (/^\s*djvu\s+(\d+)\s+(?:=|is)\s+book\s+(\S*?)(\d*)\s*$/i) {
      push @djvu_pages, { djvu => $1, prefix => $2, number => $3  }
   } elsif (/^(\S+)\s+(.*?)\s*$/) {
      push @bookmarks, { page => $1, title => $2 }
