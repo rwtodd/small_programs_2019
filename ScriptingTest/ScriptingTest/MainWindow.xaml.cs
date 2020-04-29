@@ -5,15 +5,47 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
 
 namespace ScriptingTest
 {
 
     public class RunArgs
     {
-        public double X;
-        public double Y;
-        public double EscapeVal;
+        public int X;
+        public int Y;
+    }
+
+    public interface IAlgorithm
+    {
+        int GetAnswer();
+    }
+
+    public class Mandel : IAlgorithm
+    {
+        private int myX;
+
+        public Mandel(int x)
+        {
+            myX = x;
+        }
+        public int GetAnswer()
+        {
+            return 10 + myX;
+        }
+    }
+    public class Julia : IAlgorithm
+    {
+        private int myX;
+
+        public Julia(int x)
+        {
+            myX = x;
+        }
+        public int GetAnswer()
+        {
+            return 100 + myX;
+        }
     }
 
     /// <summary>
@@ -35,19 +67,17 @@ namespace ScriptingTest
         /// <param name="e">WPF arg</param>
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
-            var globs = new RunArgs { X = 0.1, Y = 0.1, EscapeVal = 64 };
+            var globs = new RunArgs { X = 1, Y = 2 };
             var retStr = new StringBuilder();
             try
             {
-                var script = CSharpScript.Create<double>(CodeBox.Text, globalsType: typeof(RunArgs));
+                var script = CSharpScript.Create<IAlgorithm>(
+                    CodeBox.Text, 
+                    options: ScriptOptions.Default.WithReferences(typeof(ScriptingTest.IAlgorithm).Assembly).WithImports("ScriptingTest"), 
+                    globalsType: typeof(RunArgs));
                 script.Compile();
-                for (int i = 0; i < 10; ++i)
-                {
-                    globs.X += 0.05;
-                    globs.Y += 0.025;
-                    var state = await script.RunAsync(globs);
-                    retStr.AppendLine($"{++count} Answer:  {state.ReturnValue}");
-                }
+                var state = await script.RunAsync(globs);
+                retStr.AppendLine($"{++count} Answer:  {state.ReturnValue.GetAnswer()}");
                 ResultsBox.Text = retStr.ToString();
             }
             catch (Exception ex)
